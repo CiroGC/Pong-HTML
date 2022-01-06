@@ -1,0 +1,192 @@
+<html>
+    <!DOCTYPE html>
+    <html>
+    <head> </head>
+    <body> </body>
+    </html>
+    <canvas id="gameCanvas" width="800" height="600">
+<script>
+
+var canvas;
+var canvasContext;
+var ballX = 50;
+var ballY = 50;
+var ballSpeedX = 10;
+var ballSpeedY = 4;
+
+var paddle1Y = 250;
+var paddle2Y = 250;
+const paddleHeight = 100;
+const paddleThickness = 10;
+
+var player1Score = 0;
+var player2Score = 0;
+
+ // esta función es para el funcionamiento del mouse
+function calculateMousePos(evt){
+    var rect = canvas.getBoundingClientRect();
+    var root = document.documentElement;
+    var mouseX = evt.clientX - rect.left - root.scrollLeft;
+    var mouseY = evt.clientY - rect.top - root.scrollTop;
+    return {
+        x: mouseX,
+        y: mouseY
+    };
+}
+ 
+function handleMouseClick(evt) { 
+    if(player1Score >= 10 || player2Score >= 10) {
+        player1Score = 0;
+        player2Score = 0;
+       
+    }
+ 
+}
+
+// esta funcion es muy importante, declara los FPS y demás
+window.onload = function() {
+    canvas = document.getElementById('gameCanvas');
+    canvasContext = canvas.getContext('2d');
+
+    var framesPerSecond = 50;
+    setInterval(function(){
+        moveEverything();
+        drawEverything();
+        computerMovement();
+        winner();
+        handleMouseClick(evt);
+
+    }, 1000/framesPerSecond);
+   
+    canvas.addEventListener('mousedown', handleMouseClick);
+
+// esta funcion es para mover el control en Y y el paddleHeight/2
+// es para que el mouse esté centrado 
+    canvas.addEventListener('mousemove',
+    function(evt){
+        var mousePos = calculateMousePos(evt);
+        paddle1Y = mousePos.y - (paddleHeight/2);
+    });
+}
+
+// este función reinicia la pelota
+function ballReset () {
+    ballSpeedX = 10;
+    ballSpeedX = -ballSpeedX
+    ballX = canvas.width/2;
+    ballY = canvas.height/2;
+}
+
+// esta vendría a ser la "IA" que lo único que hace es detectar la posición de la pelota
+// y moverse en consecuencia
+function computerMovement() {
+    var paddle2YCenter = paddle2Y + (paddleHeight/2); // va a hacer que siga a la pelota pero mas centrado
+    if (paddle2YCenter < ballY - 35) {
+        paddle2Y = paddle2Y + 5; 
+    } else if (paddle2YCenter > ballY + 35){
+        paddle2Y = paddle2Y - 5; // tambien se podría escribir paddle2Y +=/-= 7;
+ 
+    }
+}
+// la siguiente función es para que la pelota rebote por si misma
+function moveEverything() {
+    ballX = ballX + ballSpeedX;
+    ballY = ballY + ballSpeedY;
+
+    if (ballX < 0) {
+// el siguiente if establece que si el pad está por encima de la bola
+// tendra que revertir su velocidad, o sea, ir hacia la derecha
+        if(ballY > paddle1Y &&
+           ballY < paddle1Y + paddleHeight) {
+               ballSpeedX = -ballSpeedX
+               
+               var deltaY = ballY
+                          -(paddle1Y + paddleHeight/2);
+                ballSpeedY = deltaY * 0.35;
+           } else {
+
+            ballReset();
+            player2Score++;
+
+           }
+        
+    }
+    if (ballX > canvas.width) {
+        if(ballY > paddle2Y &&
+           ballY < paddle2Y + paddleHeight) {
+               ballSpeedX = -ballSpeedX
+
+               var deltaY = ballY
+                          -(paddle2Y + paddleHeight/2);
+                ballSpeedY = deltaY * 0.35;
+           } else {
+
+            ballReset();
+            player1Score++;
+
+           }
+    }
+
+    if (ballY < 0) {
+        ballSpeedY = -ballSpeedY;
+    }
+    if (ballY > canvas.height) {
+        ballSpeedY = -ballSpeedY;
+    }
+}
+
+function drawNet() {
+    for(var i=0; i<canvas.height; i+=40) {
+        colorRect(canvas.width/2-1, i, 2, 20, 'black');
+    }
+}
+
+function drawEverything() {
+   
+    drawNet();
+
+    // color y posición del fondo
+    colorRect(0,0,canvas.width,canvas.height, '#FF8933');
+    // color y posición del pad izquierdo
+    colorRect(0,paddle1Y,paddleThickness,paddleHeight, '#F9263B');
+    // color y posición del pad derecho
+    colorRect(canvas.width -paddleThickness,paddle2Y,paddleThickness,paddleHeight, '#F9263B');
+    // color, forma y posición inicial de la pelota
+    colorCircle(ballX, ballY, 10, 'red');
+
+    canvasContext.fillText(player1Score, 100, 100);
+    canvasContext.fillText(player2Score, canvas.width - 100, 100);
+
+}
+ // La siguiente función resume cómo se forma la bola
+function colorCircle(centerX, centerY, radius, drawColor){
+    canvasContext.fillStyle = drawColor;
+    canvasContext.beginPath();
+    canvasContext.arc(centerX, centerY, radius, 0, Math.PI*2, true);
+    canvasContext.fill();
+
+}
+// La siguiente función resume/hace una plantilla de los objetos
+function colorRect (leftX, topY, width, height, drawColor) {
+    canvasContext.fillStyle = drawColor;
+    canvasContext.fillRect(leftX, topY, width, height);
+}
+
+function winner(){
+
+    if (player1Score >= 10) {
+    canvasContext.fillText("PLAYER 1 WINS", 300, 300);
+
+        ballReset();
+
+    } else if (player2Score >= 10) {
+    canvasContext.fillText("PLAYER 2 WINS", 300, 300);
+
+        ballReset();
+
+    }
+    
+}
+</script>  
+
+</html>
